@@ -1,0 +1,3 @@
+[submodule "gym-abalone"]
+	path = gym-abalone
+	url = git@github.com:towzeur/gym-abalone.git
