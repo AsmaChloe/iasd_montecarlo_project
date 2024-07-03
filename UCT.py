@@ -1,6 +1,8 @@
 """
 demo of the env
 """
+import copy
+
 import gym
 import random
 from gym_abalone.envs.abalone_env import AbaloneEnv
@@ -28,7 +30,7 @@ class UCTAgent:
         self.max_iterations = max_iterations
 
     def uct_search(self):
-        root_node = Node(self.env.game.clone())  # Clone the initial game state
+        root_node = Node(clone_game(self.env.game))  # Clone the initial game state
         for _ in range(self.max_iterations):
             print(f"iteration {_}")
             selected_node = self.selection(root_node)
@@ -64,7 +66,7 @@ class UCTAgent:
         possible_moves = self.env.game.get_possible_moves(node.state.current_player)
         print(f"\t possible_moves: {possible_moves}")
         for move in possible_moves:
-            new_state = node.state.clone()
+            new_state = clone_game(node.state)
             new_state.action_handler(move[0], move[1])
             new_node = Node(new_state, move)
             node.children.append(new_node)
@@ -75,7 +77,7 @@ class UCTAgent:
         # Simulate game until terminal state using random moves
         # Return reward
 
-        state = node.state.clone()
+        state = clone_game(node.state)
         while not state.game_over:
             possible_moves = state.get_possible_moves(state.current_player)
             move = random.choice(possible_moves)
@@ -96,6 +98,8 @@ class UCTAgent:
             current_node.total_reward += reward
             current_node = current_node.parent
 
+def clone_game(game):
+    return copy.deepcopy(game)
 
 # env = gym.make('abalone-v0')
 env = AbaloneEnv(render_mode='terminal')
