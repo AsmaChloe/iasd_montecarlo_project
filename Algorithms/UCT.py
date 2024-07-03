@@ -25,21 +25,23 @@ class Node:
         return f"Node({self.state}, move={self.move}, visit_count={self.visit_count}, total_reward={self.total_reward})"
 
 class UCTAgent:
-    def __init__(self, env, max_iterations=100):
+    def __init__(self, env, max_iterations=30):
         self.env = env
         self.max_iterations = max_iterations
 
     def uct_search(self):
         root_node = Node(clone_game(self.env.game))  # Clone the initial game state
         for _ in range(self.max_iterations):
-            print(f"iteration {_}")
+            # print(f"iteration {_}")
             selected_node = self.selection(root_node)
             new_node = self.expansion(selected_node)
             reward = self.simulation(new_node)
             self.backpropagation(new_node, reward)
+#             print(f"\n")
 
         # Choose the action with the highest average reward
-        best_child = max(root_node.children, key=lambda child: child.total_reward / child.visit_count)
+        best_child = max(root_node.children, key=lambda child: child.total_reward / child.visit_count if child.visit_count > 0 else 0)
+#         print(f"best_child: {best_child}")
         return best_child.move
 
     def ucb(self, node):
@@ -51,43 +53,48 @@ class UCTAgent:
         return ucb
 
     def selection(self, node):
-        print(f"selection node: {node}")
+#         print(f"selection node: {node}")
         # Implement UCB1 selection logic
         # Traverse tree based on UCB1 formula
         current_node = node
         while current_node.children:
             current_node = max(current_node.children, key=self.ucb)
-        print(f"\t selected node: {current_node}")
+#         print(f"\t selected node: {current_node}")
         return current_node
 
     def expansion(self, node):
-        print(f"expansion node: {node}")
+#         print(f"expansion node: {node}")
         # Expand node by adding child nodes for all possible moves
         possible_moves = self.env.game.get_possible_moves(node.state.current_player)
-        print(f"\t possible_moves: {possible_moves}")
+#         print(f"\t possible_moves: {possible_moves}")
         for move in possible_moves:
             new_state = clone_game(node.state)
             new_state.action_handler(move[0], move[1])
             new_node = Node(new_state, move)
             node.children.append(new_node)
             new_node.parent = node
-        return random.choice(node.children) if node.children else node  # Choose a random child initially
+
+        chosen_node = random.choice(node.children) if node.children else node
+#         print(f"\t chosen node: {chosen_node}")
+        return chosen_node  # Choose a random child initially
 
     def simulation(self, node):
         # Simulate game until terminal state using random moves
         # Return reward
-
+#         print(f"simulation node: {node}")
         state = clone_game(node.state)
         while not state.game_over:
             possible_moves = state.get_possible_moves(state.current_player)
             move = random.choice(possible_moves)
             state.action_handler(move[0], move[1])
-
+#         print(f"\t game over at {state} - {state.players_victories}")
         # Calculate reward (for simplicity, assuming reward based on game outcome)
         winner = np.argmax(state.players_victories)
         if winner == node.state.current_player:
+#             print(f"\t reward: {1.0}")
             return 1.0  # Win
         else:
+#             print(f"\t reward: {0.0}")
             return 0.0  # Loss or draw
 
     def backpropagation(self, node, reward):
@@ -101,9 +108,11 @@ class UCTAgent:
 def clone_game(game):
     return copy.deepcopy(game)
 
+def str_game(game):
+    return f"Game({game.current_player}, {game.players_victories})"
 # env = gym.make('abalone-v0')
 env = AbaloneEnv(render_mode='terminal')
-uct_agent = UCTAgent(env)
+uct_agent = UCTAgent(env, max_iterations=3)
 
 print(env.action_space)
 # > Discrete(2)
