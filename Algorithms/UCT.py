@@ -44,29 +44,28 @@ class UCTAgent:
 #         print(f"best_child: {best_child}")
         return best_child.move
 
-    def ucb(self, node):
+    def ucb(self, node, constant = 2):
         # Implement the Upper Confidence Bound for Trees (UCT) formula
-        constant = 1
+
         if node.visit_count == 0:
             return float('inf')
         ucb = node.total_reward / node.visit_count + constant * np.sqrt(np.log(node.parent.visit_count) / node.visit_count)
         return ucb
 
     def selection(self, node):
-#         print(f"selection node: {node}")
-        # Implement UCB1 selection logic
-        # Traverse tree based on UCB1 formula
         current_node = node
+        # While not a leaf node, choose the child node with the highest UCB value
         while current_node.children:
             current_node = max(current_node.children, key=self.ucb)
-#         print(f"\t selected node: {current_node}")
         return current_node
 
     def expansion(self, node):
-#         print(f"expansion node: {node}")
-        # Expand node by adding child nodes for all possible moves
+        # If never been visited, return itself
+        if node.visit_count == 0:
+            return node
+
+        # Else, expand the node by adding all possible child nodes
         possible_moves = self.env.game.get_possible_moves(node.state.current_player)
-#         print(f"\t possible_moves: {possible_moves}")
         for move in possible_moves:
             new_state = clone_game(node.state)
             new_state.action_handler(move[0], move[1])
@@ -74,28 +73,21 @@ class UCTAgent:
             node.children.append(new_node)
             new_node.parent = node
 
-        chosen_node = random.choice(node.children) if node.children else node
-#         print(f"\t chosen node: {chosen_node}")
-        return chosen_node  # Choose a random child initially
+        chosen_node = random.choice(node.children) #if node.children else node TODO maybe choose first instead of random ?
+        return chosen_node
 
     def simulation(self, node):
-        # Simulate game until terminal state using random moves
-        # Return reward
-#         print(f"simulation node: {node}")
         state = clone_game(node.state)
         while not state.game_over:
             possible_moves = state.get_possible_moves(state.current_player)
+            # No possible moves, end the game
+            if len(possible_moves) == 0:
+                break
             move = random.choice(possible_moves)
             state.action_handler(move[0], move[1])
-#         print(f"\t game over at {state} - {state.players_victories}")
-        # Calculate reward (for simplicity, assuming reward based on game outcome)
+
         winner = np.argmax(state.players_victories)
-        if winner == node.state.current_player:
-#             print(f"\t reward: {1.0}")
-            return 1.0  # Win
-        else:
-#             print(f"\t reward: {0.0}")
-            return 0.0  # Loss or draw
+        return 1.0 if winner == node.state.current_player else 0.0
 
     def backpropagation(self, node, reward):
         # Update visit count and total reward in all nodes in path from root to node
