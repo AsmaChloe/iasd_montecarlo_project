@@ -102,15 +102,11 @@ def clone_game(game):
 
 def str_game(game):
     return f"Game({game.current_player}, {game.players_victories})"
-# env = gym.make('abalone-v0')
+
+# To see game interface
+#env = AbaloneEnv(render_mode='human')
 env = AbaloneEnv(render_mode='terminal')
 uct_agent = UCTAgent(env, max_iterations=3)
-
-print(env.action_space)
-# > Discrete(2)
-print(env.observation_space)
-# > Box(11,11)
-
 
 NB_EPISODES = 1
 for episode in range(1, NB_EPISODES + 1):
@@ -120,7 +116,7 @@ for episode in range(1, NB_EPISODES + 1):
         action = uct_agent.uct_search()
         obs, reward, done, info = env.step(action)
         print(f"{info['turn']: <4} | {info['player_name']} | {str(info['move_type']): >16} | reward={reward: >4} ")
-        env.render(fps=1)
+        env.render(fps=0.5)
     print(f"Episode {info['turn']: <4} finished after {env.game.turns_count} turns \n")
 env.close()
 

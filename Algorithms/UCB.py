@@ -79,14 +79,10 @@ def clone_game(game):
 def str_game(game):
     return f"Game({game.current_player}, {game.players_victories})"
 
-# env = gym.make('abalone-v0')
-env = AbaloneEnv(render_mode='terminal')
-ucb_agent = UCBAgent(env, max_iterations=10)
 
-print(env.action_space)
-# > Discrete(2)
-print(env.observation_space)
-# > Box(11,11)
+#env = AbaloneEnv(render_mode='human')
+env = AbaloneEnv(render_mode='terminal')
+ucb_agent = UCBAgent(env, max_iterations=3)
 
 NB_EPISODES = 1
 for episode in range(1, NB_EPISODES + 1):
