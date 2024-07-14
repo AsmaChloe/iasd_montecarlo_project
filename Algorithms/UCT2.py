@@ -67,7 +67,7 @@ class UCTAgent:
             return node
 
         # Else, expand the node by adding all possible child nodes
-        possible_moves = node.env.game.get_possible_moves(node.env.game.current_player, verbose = False)
+        possible_moves = node.env.game.get_possible_moves(node.env.game.current_player)
         for move in possible_moves:
             new_env = clone_env(node.env)
             new_env.step(move)
