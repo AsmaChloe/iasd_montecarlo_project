@@ -54,7 +54,7 @@ class UCBAgent:
         return nodes[selected_move]
 
     def simulation(self, node):
-        sim_state = clone_game(node.state)
+        sim_state = clone_game(node.game)
         sim_state.action_handler(node.move[0], node.move[1])
         while not sim_state.game_over:
             possible_moves = sim_state.get_possible_moves(sim_state.current_player)
@@ -64,7 +64,7 @@ class UCBAgent:
             sim_state.action_handler(random_move[0], random_move[1])
 
         winner = np.argmax(sim_state.players_victories)
-        return 1.0 if winner == node.state.current_player else 0.0
+        return 1.0 if winner == node.game.current_player else 0.0
 
     def backpropagation(self, node, reward):
         current_node = node
@@ -80,8 +80,8 @@ def str_game(game):
     return f"Game({game.current_player}, {game.players_victories})"
 
 
-#env = AbaloneEnv(render_mode='human')
-env = AbaloneEnv(render_mode='terminal')
+env = AbaloneEnv(render_mode='human')
+# env = AbaloneEnv(render_mode='terminal')
 ucb_agent = UCBAgent(env, max_iterations=3)
 
 NB_EPISODES = 1
