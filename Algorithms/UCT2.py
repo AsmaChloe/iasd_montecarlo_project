@@ -47,7 +47,7 @@ class UCTAgent:
         # print(f"\tbest_child: {best_child} - {best_child.env.game.current_player}")
         return best_child
 
-    def ucb(self, node, constant = 2):
+    def ucb(self, node, constant = 1.4):
         # Implement the Upper Confidence Bound for Trees (UCT) formula
         if node.visit_count == 0:
             return float('inf')
