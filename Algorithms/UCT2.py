@@ -9,13 +9,15 @@ import numpy as np
 
 from gym_abalone.game.engine.gamelogic import AbaloneGame
 
+import time
 
 class Node:
-    def __init__(self, env, move=None, parent=None):
+    def __init__(self, env, move=None, parent=None, move_type=None):
         self.original_env = clone_env(env)
         self.env = env
         # move that led to this state
         self.move = move
+        self.move_type = move_type
         # number of visits
         self.visit_count = 0
         # cumulative reward
@@ -24,7 +26,7 @@ class Node:
         self.parent = parent
 
     def __repr__(self):
-        return f"Node(id={hex(id(self))} env={self.env}, move={self.move}, visit_count={self.visit_count}, total_reward={self.total_reward})"
+        return f"Node(id={hex(id(self))} env={self.env}, move={self.move}, visit_count={self.visit_count}, total_reward={self.total_reward}, move_type={self.move_type})"
 
     def reset_env(self):
         self.env = clone_env(self.original_env)
@@ -36,14 +38,50 @@ class UCTAgent:
 
     def uct_search(self, root_node):
         for _ in range(self.max_iterations):
-            root_node.reset_env()
-            selected_node = self.selection(root_node)
-            new_node = self.expansion(selected_node)
-            reward = self.simulation(new_node)
-            self.backpropagation(new_node, reward)
+            print(f"iteration {_}")
 
-        # Choose the action with the highest average reward
-        best_child = max(root_node.children, key=lambda child: child.total_reward / child.visit_count if child.visit_count > 0 else 0)
+            root_node.reset_env()
+            # Selection
+            start_time = time.time()
+            selected_node = self.selection(root_node)
+            print(f"\tselected_node: {selected_node}")
+            end_time = time.time()
+            print(f"\tSelection time: {end_time - start_time:.6f} seconds")
+
+            # Expansion
+            start_time = time.time()
+            new_node = self.expansion(selected_node)
+            end_time = time.time()
+            print(f"\tExpansion time: {end_time - start_time:.6f} seconds")
+
+            # Simulation
+            start_time = time.time()
+            reward = self.simulation(new_node)
+            end_time = time.time()
+            print(f"\tSimulation time: {end_time - start_time:.6f} seconds")
+
+            # Backpropagation
+            start_time = time.time()
+            self.backpropagation(new_node, reward)
+            end_time = time.time()
+            print(f"\tBackpropagation time: {end_time - start_time:.6f} seconds")
+
+        ## Choose the action with the highest average reward
+
+        # Select candidate children with the highest average reward
+        max_criteria = max(root_node.children, key=lambda child: child.total_reward / child.visit_count if child.visit_count > 0 else 0)
+        candidate_children_by_move_type = {"winner" : [], "ejected" : [], "inline_push" : [], "sidestep_move" : [], "inline_move" : []}
+        for child in root_node.children:
+            avg_reward = child.total_reward / child.visit_count if child.visit_count > 0 else 0
+            if  avg_reward == max_criteria.total_reward / max_criteria.visit_count:
+                candidate_children_by_move_type[child.move_type].append(child)
+
+        # Choose the best child among the candidate children
+        for move_type, candidate_children in candidate_children_by_move_type.items():
+            if len(candidate_children) > 0:
+                best_child = random.choice(candidate_children)
+                break
+
         # print(f"\tbest_child: {best_child} - {best_child.env.game.current_player}")
         return best_child
 
@@ -67,30 +105,32 @@ class UCTAgent:
             return node
 
         # Else, expand the node by adding all possible child nodes
-        possible_moves = node.env.game.get_possible_moves(node.env.game.current_player)
-        for move in possible_moves:
-            new_env = clone_env(node.env)
-            new_env.step(move)
-            new_node = Node(new_env, move, node)
-            node.children.append(new_node)
+        possible_moves = node.env.game.get_possible_moves(node.env.game.current_player, group_by_type=True)
+        for move_type in possible_moves:
+            for move in possible_moves[move_type]:
+                new_env = clone_env(node.env)
+                new_env.step(move)
+                new_node = Node(new_env, move, node, move_type=move_type)
+                node.children.append(new_node)
 
         chosen_node = random.choice(node.children)
         return chosen_node
 
     def simulation(self, node):
         while not node.env.game.game_over:
-            possible_moves = node.env.game.get_possible_moves(node.env.game.current_player)
+            possible_moves = node.env.game.get_possible_moves(node.env.game.current_player, group_by_type=True)
             # No possible moves, end the game
             if len(possible_moves) == 0:
                 break
-            move = random.choice(possible_moves)
-            node.env.step(move)
-            if not node.env.game.game_over and node.env.done:
-                return 0.0
+            for move_type in ['winner', 'ejected', 'inline_push', 'sidestep_move', 'inline_move']:
+                if possible_moves[move_type]:
+                    move = random.choice(possible_moves[move_type])
+                    node.env.step(move)
+                    break
 
         winner = np.argmax(node.env.game.players_victories)
         # print(f"\t\t\t winner: {winner}")
-        return 1.0 if winner == node.env.game.current_player else 0.0
+        return 1.0 if winner == node.original_env.game.current_player else 0.0
 
     def backpropagation(self, node, reward):
         # Update visit count and total reward in all nodes in path from root to node
