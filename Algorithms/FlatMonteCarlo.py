@@ -126,7 +126,7 @@ for episode in range(1, NB_EPISODES + 1):
     done = False
     while not done:
         best_node = flat_monte_carlo_agent.flat_monte_carlo_search()
-        obs, reward, done, info = env.step(best_node.move, verbose=True)
+        obs, reward, done, info = env.step(best_node.move)
         print(f"{info['turn']: <4} | {info['player_name']} | {str(info['move_type']): >16} | reward={reward: >4} ")
         env.render(fps=1)
     print(f"Episode {info['turn']: <4} finished after {env.game.turns_count} turns \n")
