@@ -1,5 +1,4 @@
 import copy
-import gym
 import random
 from gym_abalone.envs.abalone_env import AbaloneEnv
 import numpy as np
@@ -16,12 +15,6 @@ class Node:
 
         #Reward for each simulation
         self.rewards = []
-        # number of visits
-        # self.visit_count = 0
-        # cumulative reward
-        # self.total_reward = 0
-        # self.children = []
-        # self.parent = parent
 
     def __repr__(self):
         return f"Node(id={hex(id(self))} env={self.env}, move={self.move}, move_type={self.move_type}), rewards={self.rewards})"
@@ -122,7 +115,7 @@ flat_monte_carlo_agent = FlatMonteCarloAgent(env, max_simulations=3)
 
 NB_EPISODES = 1
 for episode in range(1, NB_EPISODES + 1):
-    env.reset(random_player=False, random_pick=False)
+    env.reset(random_player=True, random_pick=True)
     done = False
     while not done:
         best_node = flat_monte_carlo_agent.flat_monte_carlo_search()

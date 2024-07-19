@@ -1,10 +1,7 @@
 import copy
-import gym
 import random
 from gym_abalone.envs.abalone_env import AbaloneEnv
 import numpy as np
-import time
-
 class UCBAgent:
     def __init__(self, env, max_iterations=30, exploration_param=1.4):
         self.env = env
@@ -18,25 +15,16 @@ class UCBAgent:
         children = { move : {'game' : clone_game(self.env.game),'visit_count' : 0, 'total_reward' : 0, 'move_type' : move_type} for move_type, moves in possible_moves.items() for move in moves}
 
         for _ in range(self.max_iterations):
-            print(f"iteration {_}")
+            # print(f"iteration {_}")
 
             # Selection
-            start_time = time.time()
             selected_move = self.selection(children)
-            end_time = time.time()
-            print(f"\tSelection time: {end_time - start_time:.6f} seconds")
 
             # Simulation
-            start_time = time.time()
             reward = self.simulation(selected_move, children[selected_move])
-            end_time = time.time()
-            print(f"\tSimulation time: {end_time - start_time:.6f} seconds")
 
             # Updating stats
-            start_time = time.time()
             self.update_stats(children[selected_move], reward)
-            end_time = time.time()
-            print(f"\tUpdating stats time: {end_time - start_time:.6f} seconds")
 
         ## Choose the action with the highest average reward
 
@@ -110,7 +98,7 @@ ucb_agent = UCBAgent(env, max_iterations=3)
 
 NB_EPISODES = 1
 for episode in range(1, NB_EPISODES + 1):
-    env.reset(random_player=True, random_pick=False)
+    env.reset(random_player=True, random_pick=True)
     done = False
     while not done:
         action = ucb_agent.ucb_search()

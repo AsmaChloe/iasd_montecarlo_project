@@ -3,7 +3,6 @@ import random
 from gym_abalone.envs.abalone_env import AbaloneEnv
 import numpy as np
 from gym_abalone.game.engine.gamelogic import AbaloneGame
-import time
 
 class Node:
     def __init__(self, env, move=None, parent=None, move_type=None):
@@ -34,14 +33,15 @@ class UCTAgent:
             # print(f"iteration {_}")
 
             root_node.reset_env()
+
+            # Selection
             selected_node = self.selection(root_node)
-            # print(f"\tselected_node: {selected_node}")
             new_node = self.expansion(selected_node)
+
+            # Simulation
             reward, visited_nodes = self.simulation(new_node)
             self.backpropagation(new_node, reward, visited_nodes)
 
-        # best_child = max(root_node.children, key=lambda child: child.total_reward / child.visit_count if child.visit_count > 0 else 0)
-        # return best_child
         ## Choose the action with the highest average reward
 
         # Select candidate children with the highest average reward
@@ -60,7 +60,6 @@ class UCTAgent:
                 best_child = random.choice(candidate_children)
                 break
 
-        # print(f"\tbest_child: {best_child} - {best_child.env.game.current_player}")
         return best_child
 
     def ucb_rave(self, node, constant=1.4, rave_constant=1.0):
@@ -151,7 +150,7 @@ uct_agent = UCTAgent(env, max_iterations=3)
 
 NB_EPISODES = 1
 for episode in range(1, NB_EPISODES + 1):
-    env.reset(random_player=True, random_pick=False)
+    env.reset(random_player=True, random_pick=True)
     done = False
     parent = None
     move = None
