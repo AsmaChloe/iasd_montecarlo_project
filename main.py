@@ -8,12 +8,12 @@ def parse_args():
     parser.add_argument("--solver",
                         type=str,
                         choices=["FLAT_MC", "RAVE", "UCT", "UCB"],
-                        default="UCT",
+                        default="UCB",
                         help="Solver algorithm to use")
     parser.add_argument("--render_mode", type=str, default="human", help="Render mode of the game")
     parser.add_argument("--max_iterations", type=int, default=3, help="Maximum number of iterations for the solver")
-    parser.add_argument("--random_player", type=bool, default=True, help="Randomly pick player to start the game")
-    parser.add_argument("--random_pick", type=bool, default=False, help="Randomly pick game layout")
+    parser.add_argument("--random_player", action='store_true', help="Randomly pick player to start the game")
+    parser.add_argument("--random_pick", action='store_true', help="Randomly pick game layout")
     return parser.parse_args()
 
 if __name__ == "__main__":
