@@ -155,27 +155,29 @@ def clone_env(env):
 
     return cloned_env
 
-# To see game interface
-env = AbaloneEnv(render_mode='human', max_turns=2000)
-# env = AbaloneEnv(render_mode='terminal', max_turns=2000)
-uct_agent = UCTAgent(env, max_iterations=3)
+def main(render_mode='human', max_iterations=3, random_player=True, random_pick=True):
+    # To see game interface
+    env = AbaloneEnv(render_mode=render_mode, max_turns=2000)
+    uct_agent = UCTAgent(env, max_iterations=max_iterations)
 
-NB_EPISODES = 1
-for episode in range(1, NB_EPISODES + 1):
-    env.reset(random_player=True, random_pick=True)
-    done = False
-    parent = None
-    move = None
-    root_node = Node(clone_env(env), move = move, parent=parent)
-    while not done:
-        best_child = uct_agent.uct_search(root_node)
-        obs, reward, done, info = env.step(best_child.move)
-        parent = root_node
-        move = best_child.move
-        root_node = best_child
-        print(f"{info['turn']: <4} | {info['player_name']} | {str(info['move_type']): >16} | reward={reward: >4} ")
-        env.render(fps=0.5)
+    NB_EPISODES = 1
+    for episode in range(1, NB_EPISODES + 1):
+        env.reset(random_player=random_player, random_pick=random_pick)
+        done = False
+        parent = None
+        move = None
+        root_node = Node(clone_env(env), move = move, parent=parent)
+        while not done:
+            best_child = uct_agent.uct_search(root_node)
+            obs, reward, done, info = env.step(best_child.move)
+            parent = root_node
+            move = best_child.move
+            root_node = best_child
+            print(f"{info['turn']: <4} | {info['player_name']} | {str(info['move_type']): >16} | reward={reward: >4} ")
+            env.render(fps=0.5)
 
-    print(f"Episode {info['turn']: <4} finished after {env.game.turns_count} turns \n")
-env.close()
+        print(f"Episode {info['turn']: <4} finished after {env.game.turns_count} turns \n")
+    env.close()
 
+if __name__ == "__main__":
+    main(render_mode='human', max_iterations=3)

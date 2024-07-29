@@ -91,19 +91,21 @@ def clone_game(game):
 def str_game(game):
     return f"Game({game.current_player}, {game.players_victories})"
 
+def main(render_mode='human', max_iterations=3, random_player=True, random_pick=True):
+    env = AbaloneEnv(render_mode=render_mode, max_turns=2000)
+    ucb_agent = UCBAgent(env, max_iterations=max_iterations)
 
-env = AbaloneEnv(render_mode='human', max_turns=2000)
-# env = AbaloneEnv(render_mode='terminal', max_turns=2000)
-ucb_agent = UCBAgent(env, max_iterations=3)
+    NB_EPISODES = 1
+    for episode in range(1, NB_EPISODES + 1):
+        env.reset(random_player=random_player, random_pick=random_pick)
+        done = False
+        while not done:
+            action = ucb_agent.ucb_search()
+            obs, reward, done, info = env.step(action)
+            print(f"{info['turn']: <4} | {info['player_name']} | {str(info['move_type']): >16} | reward={reward: >4} ")
+            env.render(fps=1)
+        print(f"Episode {info['turn']: <4} finished after {env.game.turns_count} turns \n")
+    env.close()
 
-NB_EPISODES = 1
-for episode in range(1, NB_EPISODES + 1):
-    env.reset(random_player=True, random_pick=True)
-    done = False
-    while not done:
-        action = ucb_agent.ucb_search()
-        obs, reward, done, info = env.step(action)
-        print(f"{info['turn']: <4} | {info['player_name']} | {str(info['move_type']): >16} | reward={reward: >4} ")
-        env.render(fps=1)
-    print(f"Episode {info['turn']: <4} finished after {env.game.turns_count} turns \n")
-env.close()
+if __name__ == "__main__":
+    main(render_mode='human', max_iterations=3)
